@@ -1,6 +1,7 @@
 # IDE Cache
 .vs/
 .vscode/
+libs/
 
 # Artefacts
 bin/
