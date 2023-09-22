@@ -40,6 +40,18 @@ GLFWwindow *mWindow;
 int mFrameBufferWidth = 0;
 int mFrameBufferHeight = 0;
 
+const float vertices[] = {
+  0.0f, 0.5f, 0.0f,
+  0.5f, -0.5f, 0.0f,
+  -0.5f, -0.5f, 0.0f
+};
+static constexpr const int NUMBER_OF_VERTICES_PER_TRIANGLE = 3;
+static constexpr const int NUMBER_OF_ATTRIBUTES_PER_VERTEX = 3;
+static constexpr const int GL_TRIANGLE_BUFFER_SIZE = (NUMBER_OF_VERTICES_PER_TRIANGLE * NUMBER_OF_ATTRIBUTES_PER_VERTEX) * sizeof(float);
+
+GLuint mVertexBufferObject;
+GLuint mVertexArrayObject;
+
 static void handleGLFWErrors(int error, const char* description)
 {
   std::cout << "error_callback: " << description << "\n";
@@ -76,6 +88,30 @@ bool onSurfaceReady()
   glViewport(0, 0, mFrameBufferWidth, mFrameBufferHeight);
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+  // Load Vertices Data to GPU
+  glGenBuffers(1, &mVertexBufferObject);
+  glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
+  glBufferData(
+    GL_ARRAY_BUFFER,
+    GL_TRIANGLE_BUFFER_SIZE,
+    vertices,
+    GL_STATIC_DRAW
+  );
+
+  // Create Mesh Array Object & Bind Buffers to it
+  glGenVertexArrays(1, &mVertexArrayObject);
+  glBindVertexArray(mVertexArrayObject);
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObject);
+  glVertexAttribPointer(
+    0,
+    NUMBER_OF_VERTICES_PER_TRIANGLE,
+    GL_FLOAT,
+    GL_FALSE,
+    0,
+    nullptr
+  );
 
   return true;
 }
