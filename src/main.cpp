@@ -55,6 +55,7 @@ GLuint mVertexArrayObject;
 
 GLuint mVertexShaderID;
 GLuint mFragmentShaderID;
+GLuint mShaderProgramID;
 
 static void handleGLFWErrors(int error, const char* description)
 {
@@ -159,6 +160,16 @@ bool loadShaders()
   }
   std::cout << "loadShaders: fragment shader loaded\n";
 
+  mShaderProgramID = glCreateProgram();
+  if (!mShaderProgramID)
+  {
+    std::cout << "loadShaders: failed to create shader program\n";
+    return false;
+  }
+  glAttachShader(mShaderProgramID, mVertexShaderID);
+  glAttachShader(mShaderProgramID, mFragmentShaderID);
+  glLinkProgram(mShaderProgramID);
+
   return true;
 }
 
@@ -239,6 +250,13 @@ bool init()
 void render()
 {
   glClear(GL_COLOR_BUFFER_BIT);
+
+  glUseProgram(mShaderProgramID);
+
+  glBindVertexArray(mVertexArrayObject);
+
+  // Draw Mesh
+  glDrawArrays(GL_TRIANGLES, 0, NUMBER_OF_VERTICES_PER_TRIANGLE);
 }
 
 void mainLoop()
@@ -256,6 +274,24 @@ void terminate()
 {
   if (mWindow)
   {
+    if (mVertexShaderID)
+    {
+      glDeleteShader(mVertexShaderID);
+    }
+    mVertexShaderID = 0;
+
+    if (mFragmentShaderID)
+    {
+      glDeleteShader(mFragmentShaderID);
+    }
+    mFragmentShaderID = 0;
+
+    if (mShaderProgramID)
+    {
+      glDeleteProgram(mShaderProgramID);
+    }
+    mShaderProgramID = 0;
+
     glfwDestroyWindow(mWindow);
   }
 
