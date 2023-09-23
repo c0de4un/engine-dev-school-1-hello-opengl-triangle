@@ -40,7 +40,7 @@ GLFWwindow *mWindow;
 int mFrameBufferWidth = 0;
 int mFrameBufferHeight = 0;
 
-const float vertices[] = {
+const float mVertices[] = {
   0.0f, 0.5f, 0.0f,
   0.5f, -0.5f, 0.0f,
   -0.5f, -0.5f, 0.0f
@@ -175,7 +175,7 @@ bool onSurfaceReady()
   glBufferData(
     GL_ARRAY_BUFFER,
     GL_TRIANGLE_BUFFER_SIZE,
-    vertices,
+    mVertices,
     GL_STATIC_DRAW
   );
 
