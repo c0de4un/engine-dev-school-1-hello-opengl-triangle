@@ -48,9 +48,13 @@ const float vertices[] = {
 static constexpr const int NUMBER_OF_VERTICES_PER_TRIANGLE = 3;
 static constexpr const int NUMBER_OF_ATTRIBUTES_PER_VERTEX = 3;
 static constexpr const int GL_TRIANGLE_BUFFER_SIZE = (NUMBER_OF_VERTICES_PER_TRIANGLE * NUMBER_OF_ATTRIBUTES_PER_VERTEX) * sizeof(float);
+static constexpr const int CHAR_SIZE = sizeof(char);
 
 GLuint mVertexBufferObject;
 GLuint mVertexArrayObject;
+
+GLuint mVertexShaderID;
+GLuint mFragmentShaderID;
 
 static void handleGLFWErrors(int error, const char* description)
 {
@@ -80,6 +84,82 @@ void handleFramebufferSizeChange(GLFWwindow *pWindow, int width, int height)
   mFrameBufferWidth = width;
   mFrameBufferHeight = height;
   glViewport(0, 0, mFrameBufferWidth, mFrameBufferHeight);
+}
+
+GLuint loadShader(const GLenum _type, const char *const _src)
+{
+  GLint compilationStatus;
+
+  GLuint shaderId = glCreateShader(GL_VERTEX_SHADER);
+  if (!shaderId)
+  {
+    std::cout << "loadShaders: failed to generate Vertex Shader ID\n";
+    return false;
+  }
+
+  glShaderSource(shaderId, 1, &_src, nullptr);
+  glCompileShader(shaderId);
+  glGetShaderiv(shaderId, GL_COMPILE_STATUS, &compilationStatus);
+
+  if (!compilationStatus)
+  {
+    GLint infoLen;
+
+    glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLen);
+    if (infoLen)
+    {
+      char *const infoLog = static_cast<char*>(
+        malloc(CHAR_SIZE * infoLen)
+      );
+      glGetShaderInfoLog(shaderId, infoLen, nullptr, infoLog);
+
+      std::cout << "loadShader: " << infoLog << "\n";
+
+      free(infoLog);
+    }
+
+    glDeleteShader(shaderId);
+  }
+
+  return shaderId;
+}
+
+bool loadShaders()
+{
+  std::cout << "loadShaders: loading vertex shader\n";
+  const char *const vertexShaderCode =
+  "#version 150                    \n"
+  "in vec3 vp;                     \n"
+  "void main()                     \n"
+  "{                               \n"
+  "    gl_Position = vec4(vp, 1.0);\n"
+  "}                               \n";
+
+  mVertexShaderID = loadShader(GL_VERTEX_SHADER, vertexShaderCode);
+  if (!mVertexShaderID)
+  {
+    std::cout << "loadShaders: failed to load vertex shader\n";
+    return false;
+  }
+  std::cout << "loadShaders: vertex shader loaded\n";
+
+  std::cout << "loadShaders: loading fragment shader\n";
+  const char *const fragmentShaderCode =
+  "#version 150                               \n"
+  "out vec4 frag_colour;                      \n"
+  "void main()                                \n"
+  "{                                          \n"
+  "    frag_colour = vec4(0.5, 0.0, 0.5, 1.0);\n"
+  "}                                          \n";
+  mFragmentShaderID = loadShader(GL_FRAGMENT_SHADER, fragmentShaderCode);
+  if (!mFragmentShaderID)
+  {
+    std::cout << "loadShaders: failed to load fragment shader\n";
+    return false;
+  }
+  std::cout << "loadShaders: fragment shader loaded\n";
+
+  return true;
 }
 
 bool onSurfaceReady()
@@ -112,6 +192,12 @@ bool onSurfaceReady()
     0,
     nullptr
   );
+
+  if (!loadShaders())
+  {
+    std::cout << "onSurfaceReady: failed to laod shaders\n";
+    return false;
+  }
 
   return true;
 }
